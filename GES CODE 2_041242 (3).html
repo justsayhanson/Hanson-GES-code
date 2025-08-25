@@ -1,0 +1,951 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hanson's Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      padding: 20px;
+      text-align: center;
+    }
+    .quiz-container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: none; /* hidden until start */
+      text-align: left;
+    }
+    .intro {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .intro h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .intro input {
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .question {
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    .options button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #f9f9f9;
+      cursor: pointer;
+    }
+    .options button:hover {
+      background: #eee;
+    }
+    .option.selected {
+      background-color: #d1e7ff;
+      border: 2px solid #3399ff;
+    }
+    #next-btn, #prev-btn, #submit-btn, #start-btn, #restart-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #next-btn { background: #28a745; color: white; }
+    #prev-btn { background: #6c757d; color: white; margin-right: 10px; }
+    #submit-btn { background: #007bff; color: white; }
+    #start-btn { background: #f96600; color: white; }
+    #restart-btn { background: #ff4444; color: white; }
+
+    /* Progress bar */
+    .progress-container {
+      width: 100%;
+      background: #e0e0e0;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      height: 20px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: red; /* start color */
+      text-align: center;
+      color: white;
+      font-size: 12px;
+      line-height: 20px;
+      border-radius: 10px;
+      transition: width 0.5s ease-in-out, background-color 0.5s linear;
+    }
+    .review {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .review p {
+      margin: 8px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- INTRO PAGE -->
+  <div class="intro" id="intro">
+    <h1>GES PEOPLES AND CULTURE STUDY QUIZ</h1>
+    <p style="text-align: center; font-style: italic; font-size: 14px; margin-top: -10px;">
+      By Hanson Solomon Michael (LLB1)
+    </p>
+    <br>
+    <input type="text" id="playerName" placeholder="Enter your name" />
+    <br>
+    <button id="start-btn">Start Quiz</button>
+  </div>
+
+  <!-- QUIZ PAGE -->
+  <div class="quiz-container" id="quiz-container">
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar">0%</div>
+    </div>
+    <div id="quiz"></div>
+    <button id="prev-btn">Previous</button>
+    <button id="next-btn">Next</button>
+    <button id="submit-btn" style="display:none;">Submit</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const questions = [  
+      {  
+        question: "Q1: Which of the following was the main political system of the Yoruba before 1800?",  
+        options: ["(A) Gerontocracy","(B) Theocratic Monarchy","(C) Constitutional Monarchy","(D) Feudal System"],  
+        answer: 2  
+      },  
+      {  
+        question: "Q2: The spiritual and political head of the Yoruba people in Ife is known as the",  
+        options: ["(A) Ooni","(B) Alaafin","(C) Oba","(D) Olubaba"],  
+        answer: 0  
+      },  
+      {  
+        question: "Q3: Which of the following was the most prominent Yoruba Kingdom before 1800?",  
+        options: ["(A) Benin","(B) Ife","(C) Oyo","(D) Ijebu"],  
+        answer: 2  
+      },  
+      {  
+        question: "Q4: What was the title of the king in the Oyo Empire?",  
+        options: ["(A) Obong","(B) Obi","(C) Sultan","(D) Alaafin"],  
+        answer: 3  
+      },  
+      {  
+        question: "Q5: The Oyo Mesi in Yoruba political culture served as the",  
+        options: ["(A) Military Commanders","(B) Priests","(C) Kingmakers and advisers","(D) Tax Collectors"],  
+        answer: 2  
+      },  
+      {  
+        question: "Q6: Which ethnic group is associated with the Nok culture?",  
+        options: ["(A) Yoruba","(B) Hausa","(C) Igbo","(D) Jukun"],  
+        answer: 1  
+      },  
+      {  
+        question: "Q7: The Nok culture is particularly famous for its",  
+        options: ["(A) Bronze masks","(B) Terracotta sculptures","(C) Wooden carvings","(D) Wall paintings"],  
+        answer: 1  
+      },  
+      {  
+        question: "Q8: Which of these is a major Igbo festival that predates colonialism?",  
+        options: ["(A) New Yam Festival","(B) Sallah","(C) Argungu","(D) Osun Festival"],  
+        answer: 0  
+      },  
+      {  
+        question: "Q9: The Igbo traditional political structure before 1800 can be best described as",  
+        options: ["(A) Centralized Monarchy","(B) Federalized Monarchy","(C) Gerontocracy and Acephalous Society","(D) Military Dictatorship"],  
+        answer: 2  
+      },  
+      {  
+        question: "Q10: The Hausa city-states were known as",  
+        options: ["(A) Emirates","(B) Oyo towns","(C) Zangons","(D) Bakwai"],  
+        answer: 0  
+      },  
+      {  
+        question: "Q11: The Hausa Bakwai are believed to be",  
+        options: ["(A) Slave camps","(B) Ancient cities founded by foreign traders","(C) The original seven Hausa states","(D) Islamic shrines"],  
+        answer: 2  
+      },  
+      {  
+        question: "Q12: Which of these states was part of Hausa Bakwai?",  
+        options: ["(A) Ife","(B) Katsina","(C) Calabar","(D) Aba"],  
+        answer: 1  
+      },  
+      {  
+        question: "Q13: The introduction of Islam into the Hausa states was largely through?",  
+        options: ["(A) Military Conquest","(B) Missionaries","(C) Trade and Scholarship","(D) Colonization"],  
+        answer: 2  
+      },  
+      {  
+        question: "Q14: Which minority group is known for it's unique bronze art similar to that of Benin and Ife?",  
+        options: ["(A) Nupe","(B) Ibibio","(C) Jukun","(D) Tiv"],  
+        answer: 0  
+      },  
+      {  
+        question: "Q15: Which of these was an ancient kingdom located in what is now, Cross Rivers State?",  
+        options: ["(A) Nri","(B) Kanem","(C) Kwararafa","(D) Akwa Akpa"],  
+        answer: 3  
+      },  
+      {  
+        question: "Q16: which of the following Nigerian ancient civilizations is most associated with bronze casting?",  
+        options: ["(A) Nok","(B) Ife","(C) Tiv","(D) Ibadan"],  
+        answer: 1  
+      },  
+      {  
+        question: "17. The title 'Oba' is commonly used by rulers in which region of Nigeria?",  
+        options: ["(A) North", "(B) East", "(C) South-West", "(D) South-South"],  
+        answer: 2  
+      },  
+      {  
+        question: "18. The Igbo-Ukwu archaeological site is important because it reveals—",  
+        options: ["(A) Evidence of iron smelting", "(B) Early Islamic influence", "(C) A complex metalworking culture", "(D) Slave trading posts"],  
+        answer: 2  
+      },  
+      {  
+        question: "19. The Bini Kingdom is best known for?",  
+        options: ["(A) Rock paintings", "(B) Large-scale agriculture", "(C) Bronze sculptures and royal court art", "(D) Islamic scholarship"],  
+        answer: 2  
+  },  
+  {  
+    question: "20. Which of these Nigerian ethnic groups practiced a confederal form of government before 1800?",  
+    options: ["(A) Yoruba", "(B) Hausa", "(C) Igbo", "(D) Nupe"],  
+    answer: 0  
+  },  
+  {  
+    question: "21. Which European country first established formal colonial rule in Nigeria?",  
+    options: ["(A) Germany", "(B) Portugal", "(C) Britain", "(D) France"],  
+    answer: 2  
+  },  
+  {  
+    question: "22. The annexation of Lagos in 1861 was done through which agreement?",  
+    options: ["(A) Treaty of Egun", "(B) Treaty of Berlin", "(C) Treaty of Lagos", "(D) Treaty of Cession"],  
+    answer: 3  
+  },  
+  {  
+    question: "23. Which organization was responsible for governing southern Nigeria before formal colonial administration?",  
+    options: ["(A) British Colonial Company", "(B) Royal Niger Company", "(C) United African Company", "(D) British Trading Council"],  
+    answer: 1  
+  },  
+  {  
+    question: "24. The Royal Niger Company was headed by:",  
+    options: ["(A) Lord Lugard", "(B) Sir George Goldie", "(C) Hugh Clifford", "(D) Macpherson"],  
+    answer: 1  
+  },  
+  {  
+    question: "25. The Berlin Conference of 1884–1885 was important because it:",  
+    options: ["(A) Gave Nigeria independence", "(B) Divided Africa among European powers", "(C) United African states", "(D) Introduced colonial taxes"],  
+    answer: 1  
+  },  
+  {  
+    question: "26. British conquest of Northern Nigeria was completed by:",  
+    options: ["(A) 1890", "(B) 1900", "(C) 1903", "(D) 1914"],  
+    answer: 2  
+  },  
+  {  
+    question: "27. The amalgamation of the Northern and Southern Protectorates of Nigeria took place in:",  
+    options: ["(A) 1906", "(B) 1914", "(C) 1922", "(D) 1931"],  
+    answer: 1  
+  },  
+  {  
+    question: "28. The main reason for the amalgamation of Nigeria in 1914 was to:",  
+    options: ["(A) Give independence", "(B) Increase British settlers", "(C) Ensure administrative efficiency", "(D) Promote democracy"],  
+    answer: 2  
+  },  
+  {  
+    question: "29. The person who amalgamated Nigeria in 1914 was:",  
+    options: ["(A) Hugh Clifford", "(B) Sir George Goldie", "(C) Lord Lugard", "(D) Macpherson"],  
+    answer: 2  
+  },  
+  {  
+    question: "30. The first capital of colonial Nigeria was:",  
+    options: ["(A) Calabar", "(B) Lagos", "(C) Kaduna", "(D) Lokoja"],  
+    answer: 1  
+  },  
+  {  
+    question: "31. The system of administration introduced by Lord Lugard was known as:",  
+    options: ["(A) Direct rule", "(B) Indirect rule", "(C) Military rule", "(D) Traditional rule"],  
+    answer: 1  
+  },
+    {
+      question: "Q32: Which part of Nigeria most effectively accepted indirect rule?",
+      options: ["(A) Western Nigeria","(B) Eastern Nigeria","(C) Northern Nigeria","(D) Lagos"],
+      answer: 2
+    },
+    {
+      question: "Q33: A major challenge to indirect rule in Eastern Nigeria was:",
+      options: ["(A) Existence of powerful emirs","(B) Lack of centralized authority","(C) Support for colonialism","(D) Too many Europeans"],
+      answer: 1
+    },
+    {
+      question: "Q34: Under colonial rule, the highest British official in Nigeria was the:",
+      options: ["(A) High Commissioner","(B) Governor-General","(C) Resident","(D) District Officer"],
+      answer: 1
+    },
+    {
+      question: "Q35: The British used traditional rulers in governance primarily to:",
+      options: ["(A) Educate the masses","(B) Train British administrators","(C) Reduce administrative costs","(D) Enforce independence"],
+      answer: 2
+    },
+    {
+      question: "Q36: Which of these was a feature of colonial rule in Nigeria?",
+      options: ["(A) Sovereign independence","(B) Exploitation of resources","(C) Equal political representation","(D) True federalism"],
+      answer: 1
+    },
+    {
+      question: "Q37: The first Nigerian constitution under colonial rule was the:",
+      options: ["(A) Clifford Constitution","(B) Richards Constitution","(C) Macpherson Constitution","(D) Lyttleton Constitution"],
+      answer: 0
+    },
+    {
+      question: "Q38: The Clifford Constitution was introduced in:",
+      options: ["(A) 1914","(B) 1922","(C) 1946","(D) 1951"],
+      answer: 1
+    },
+    {
+      question: "Q39: Which constitution introduced regionalism in Nigeria?",
+      options: ["(A) Clifford Constitution","(B) Richards Constitution","(C) Macpherson Constitution","(D) Lyttleton Constitution"],
+      answer: 1
+    },
+    {
+      question: "Q40: The Legislative Council introduced under colonial rule primarily served the:",
+      options: ["(A) Northern protectorate","(B) Entire country equally","(C) Colony and Protectorate of Southern Nigeria","(D) Traditional rulers only"],
+      answer: 2
+    },
+    {
+      question: "Q41: Who was the Governor-General that carried out the amalgamation of Northern and Southern Nigeria in 1914?",
+      options: ["(A) Lord Lugard","(B) Sir Arthur Richards","(C) Sir Hugh Clifford","(D) Harold Macmillan"],
+      answer: 0
+    },
+    {
+      question: "Q42: What was the main reason for the amalgamation of Nigeria in 1914?",
+      options: ["(A) To promote religious unity","(B) To improve local industries","(C) To reduce administrative cost and improve efficiency","(D) To introduce democracy"],
+      answer: 2
+    },
+    {
+      question: "Q43: What system of administration did Lord Lugard introduce in Nigeria?",
+      options: ["(A) Parliamentary system","(B) Indirect Rule","(C) Federal system","(D) Direct Rule"],
+      answer: 1
+    },
+    {
+      question: "Q44: Which of the following was the first political party in Nigeria?",
+      options: ["(A) Action Group (AG)","(B) Northern People's Congress (NPC)","(C) National Council of Nigeria and the Cameroons (NCNC)","(D) Nigerian National Democratic Party (NNDP)"],
+      answer: 3
+    },
+    {
+      question: "Q45: Who founded the Nigerian National Democratic Party (NNDP)?",
+      options: ["(A) Nnamdi Azikiwe","(B) Herbert Macaulay","(C) Obafemi Awolowo","(D) Ahmadu Bello"],
+      answer: 1
+    },
+    {
+      question: "Q46: In what year was the NNDP founded?",
+      options: ["(A) 1923","(B) 1944","(C) 1951","(D) 1960"],
+      answer: 0
+    },
+    {
+      question: "Q47: Which of these personalities was known as the 'Father of Nigerian Nationalism'?",
+      options: ["(A) Nnamdi Azikiwe","(B) Ahmadu Bello","(C) Herbert Macaulay","(D) Tafawa Balewa"],
+      answer: 2
+    },
+    {
+      question: "Q48: The Clifford Constitution of 1922 introduced what major political reform?",
+      options: ["(A) Federalism","(B) Adult suffrage","(C) Legislative Council with elected African representatives","(D) Self-government"],
+      answer: 2
+    },
+    {
+      question: "Q49: The Zikist Movement was associated with which Nigerian nationalist?",
+      options: ["(A) Herbert Macaulay","(B) Nnamdi Azikiwe","(C) Obafemi Awolowo","(D) Tafawa Balewa"],
+      answer: 1
+    },
+    {
+      question: "Q50: Which political party was founded by Obafemi Awolowo?",
+      options: ["(A) NCNC","(B) NPC","(C) AG","(D) NNDP"],
+      answer: 2
+    },
+    {
+      question: "Q51: Which Nigerian nationalist was also the editor of the West African Pilot?",
+      options: ["(A) Nnamdi Azikiwe","(B) Ahmadu Bello","(C) Anthony Enahoro","(D) Ernest Ikoli"],
+      answer: 0
+    },
+    {
+      question: "Q52: The NCNC was co-founded by Nnamdi Azikiwe and who else?",
+      options: ["(A) Obafemi Awolowo","(B) Tafawa Balewa","(C) Herbert Macaulay","(D) Ernest Ikoli"],
+      answer: 2
+    },
+    {
+      question: "Q53: When was Nigeria granted independence?",
+      options: ["(A) October 1, 1954","(B) October 1, 1960","(C) January 15, 1966","(D) May 29, 1999"],
+      answer: 1
+    },
+    {
+      question: "Q54: Who was the first Prime Minister of independent Nigeria?",
+      options: ["(A) Nnamdi Azikiwe","(B) Tafawa Balewa","(C) Obafemi Awolowo","(D) Ahmadu Bello"],
+      answer: 1
+    },
+    {
+      question: "Q55: Which constitution introduced a federal system of government in Nigeria?",
+      options: ["(A) Clifford Constitution","(B) Macpherson Constitution","(C) Lyttleton Constitution","(D) Richards Constitution"],
+      answer: 2
+    },
+    {
+      question: "Q56: Which of the following political parties was dominant in Northern Nigeria during the First Republic?",
+      options: ["(A) NCNC","(B) NPC","(C) AG","(D) NNDP"],
+      answer: 1
+    },
+    {
+      question: "Q57: The Richards Constitution of 1946 was important because it:",
+      options: ["(A) Introduced regional governments","(B) Granted Nigeria independence","(C) Introduced universal suffrage","(D) Abolished indirect rule"],
+      answer: 0
+    },
+    {
+      question: "Q58: Which of these nationalists moved the motion for Nigeria’s independence?",
+      options: ["(A) Obafemi Awolowo","(B) Nnamdi Azikiwe","(C) Herbert Macaulay","(D) Anthony Enahoro"],
+      answer: 3
+    },
+    {
+      question: "Q59: In which year was the Action Group (AG) formed?",
+      options: ["(A) 1944","(B) 1951","(C) 1959","(D) 1963"],
+      answer: 1
+    },
+    {
+      question: "Q60: Which of the following colonial policies united Nigeria under one administration?",
+      options: ["(A) Clifford Constitution","(B) Amalgamation of 1914","(C) Lyttleton Constitution","(D) Independence Constitution"],
+      answer: 1
+    },
+    {
+      question: "Q61: When did the first military coup in Nigeria take place?",
+      options: ["(A) 1960","(B) 1963","(C) 1966","(D) 1975"],
+      answer: 2
+    },
+    {
+    question: "Q62: Who was Nigeria’s first military Head of State?",
+    options: ["(A) Yakubu Gowon", "(B) Chukwumeka Ojukwu", "(C) Murtala Mohammed", "(D) Aguiyi Ironsi"],
+    answer: 3
+  },
+  {
+    question: "Q63: The 1966 coup was primarily led by which ethnic group?",
+    options: ["(A) Yoruba", "(B) Hausa", "(C) Igbo", "(D) Fulani"],
+    answer: 2
+  },
+  {
+    question: "Q64: Which of the following is a consequence of military rule in Nigeria?",
+    options: ["(A) Frequent elections", "(B) Stable democracy", "(C) Suppression of civil liberties", "(D) Independent judiciary"],
+    answer: 2
+  },
+  {
+    question: "Q65: Who succeeded General Aguiyi Ironsi after the July 1966 counter-coup?",
+    options: ["(A) Olusegun Obasanjo", "(B) Yakubu Gowon", "(C) Murtala Mohammed", "(D) Ibrahim Babangida"],
+    answer: 1
+  },
+  {
+    question: "Q66: Which military regime created the most states in Nigeria?",
+    options: ["(A) General Babangida", "(B) General Abacha", "(C) General Gowon", "(D) General Murtala Mohammed"],
+    answer: 2
+  },
+  {
+    question: "Q67: One major reason for military intervention in Nigerian politics was:",
+    options: ["(A) Academic excellence", "(B) Political instability and corruption", "(C) Religious tolerance", "(D) Economic prosperity"],
+    answer: 1
+  },
+  {
+    question: "Q68: What year did the military hand over power to a civilian government in Nigeria for the second time?",
+    options: ["(A) 1979", "(B) 1999", "(C) 1983", "(D) 1993"],
+    answer: 1
+  },
+  {
+    question: "Q69: Which of the following is NOT a feature of military government?",
+    options: ["(A) Decrees and edicts", "(B) Rule by force", "(C) Separation of powers", "(D) Suspension of the constitution"],
+    answer: 2
+  },
+  {
+    question: "Q70: Military rule in Nigeria encouraged:",
+    options: ["(A) Multiparty democracy", "(B) Federal character principle", "(C) Centralized decision-making", "(D) Transparency and accountability"],
+    answer: 2
+  },
+  {
+    question: "Q71: What was the main cause of the Nigerian Civil War?",
+    options: ["(A) Religious crisis", "(B) Secession of Biafra", "(C) Foreign invasion", "(D) Trade disputes"],
+    answer: 1
+  },
+  {
+    question: "Q72: Who was the leader of Biafra during the Nigerian Civil War?",
+    options: ["(A) Nnamdi Azikiwe", "(B) Emeka Anyaoku", "(C) Odumegwu Ojukwu", "(D) Chinua Achebe"],
+    answer: 2
+  },
+  {
+    question: "Q73: The Nigerian Civil War officially began in:",
+    options: ["(A) May 1966", "(B) July 1966", "(C) January 1967", "(D) July 1967"],
+    answer: 3
+  },
+  {
+    question: "Q74: Which slogan was used by the Nigerian government during the civil war?",
+    options: ["(A) “One Nigeria!”", "(B) “Unity is Strength”", "(C) “To keep Nigeria one is a task that must be done”", "(D) “Federalism forever”"],
+    answer: 2
+  },
+  {
+    question: "Q75: Which country supported Biafra during the civil war?",
+    options: ["(A) Ghana", "(B) United States", "(C) France", "(D) Soviet Union"],
+    answer: 2
+  },
+  {
+    question: "Q76: One major humanitarian crisis during the Nigerian Civil War was:",
+    options: ["(A) Flood disaster", "(B) Famine in Biafra", "(C) Earthquake in the East", "(D) Oil spillage"],
+    answer: 1
+  },
+  {
+    question: "Q77: The Nigerian Civil War ended in:",
+    options: ["(A) 1970", "(B) 1972", "(C) 1969", "(D) 1971"],
+    answer: 0
+  },
+  {
+    question: "Q78: The policy of “No victor, no vanquished” was declared by:",
+    options: ["(A) Olusegun Obasanjo", "(B) Yakubu Gowon", "(C) Murtala Mohammed", "(D) Benjamin Tenneson"],
+    answer: 1
+  },
+  {
+    question: "Q79: The immediate cause of the civil war was:",
+    options: ["(A) Creation of more states", "(B) Refusal to implement Aburi Accord", "(C) Religious violence", "(D) Boundary disputes"],
+    answer: 1
+  },
+  {
+    question: "Q80: A major impact of the Nigerian Civil War was:",
+    options: ["(A) Total disintegration of Nigeria", "(B) End of federalism", "(C) Massive loss of lives and property", "(D) Emergence of new political parties"],
+    answer: 2
+  },
+  {
+    question: "Q81: What is the primary feature of indigenous trade in Nigeria?",
+    options: ["(A) Dependence on online payment systems", "(B) Use of sophisticated retail chains", "(C) Use of traditional market days and barter system", "(D) Reliance on foreign exchange"],
+    answer: 2
+  },
+  {
+    question: "Q82: Which of the following best describes a traditional market in Nigeria?",
+    options: ["(A) Only operates during weekends", "(B) Operates using modern supermarkets", "(C) Is based on community gathering and periodic market days", "(D) Requires international trade licenses"],
+    answer: 2
+  },
+  {
+    question: "Q83: In the pre-colonial Nigerian market system, trade was mainly conducted through:",
+    options: ["(A) E-commerce platforms", "(B) Cryptocurrency", "(C) Barter and later cowries", "(D) Credit cards"],
+    answer: 2
+  },
+  {
+    question: "Q84: Which of these is a common indigenous unit of trade in traditional Nigerian markets?",
+    options: ["(A) Dollar", "(B) Cartons", "(C) Calabashes and baskets", "(D) Pounds"],
+    answer: 2
+  },
+  {
+    question: "Q85: One key role of traditional Nigerian markets is to:",
+    options: ["(A) Promote foreign investment", "(B) Serve as centers of cultural and social exchange", "(C) Ban rural development", "(D) Enforce tax"],
+    answer: 1
+  },
+  {
+    question: "Q86: Which ethnic group in Nigeria is especially known for its indigenous apprenticeship system?",
+    options: ["(A) Fulani", "(B) Yoruba", "(C) Igbo", "(D) Tiv"],
+    answer: 2
+  },
+  {
+    question: "Q87: The Igbo apprenticeship system is best described as a:",
+    options: ["(A) Formal university education system", "(B) System where youths are trained and later settled to start their own business", "(C) Government employment scheme", "(D) Pension plan"],
+    answer: 1
+  },
+  {
+    question: "Q88: What is the key benefit of the indigenous apprenticeship system?",
+    options: ["(A) It reduces family ties", "(B) It promotes idleness", "(C) It builds entrepreneurship and self-reliance", "(D) It discourages business growth"],
+    answer: 2
+  },
+  {
+    question: "Q89: In the indigenous apprenticeship system, 'settlement' means:",
+    options: ["(A) Sending the apprentice to jail", "(B) Terminating the apprenticeship with punishment", "(C) Giving the apprentice money or goods to start a business", "(D) Returning the apprentice to the village"],
+    answer: 2
+  },
+  {
+    question: "Q90: Which of the following is NOT a characteristic of the indigenous apprenticeship system?",
+    options: ["(A) Knowledge transfer", "(B) Skills acquisition", "(C) Free distribution of goods", "(D) Mentorship"],
+    answer: 2
+  },
+  {
+    question: "Q91: Skill acquisition is important in trade because it:",
+    options: ["(A) Reduces productivity", "(B) Promotes laziness", "(C) Equips individuals to be self-reliant", "(D) Deters economic development"],
+    answer: 2
+  },
+  {
+    question: "Q92: Which of the following best defines self-reliance?",
+    options: ["(A) Ability to depend on foreign goods", "(B) Ability to live without producing anything", "(C) Ability to meet one's needs through personal effort and local resources", "(D) Dependence on government aid"],
+    answer: 2
+  },
+  {
+    question: "Q93: An example of a self-reliant activity in Nigeria is:",
+    options: ["(A) Importing all food items", "(B) Learning tailoring and opening a fashion shop", "(C) Depending on monthly allowance", "(D) Waiting for foreign investors"],
+    answer: 1
+  },
+  {
+    question: "Q94: Which sector mostly benefits from indigenous skill acquisition programs?",
+    options: ["(A) Oil and gas", "(B) Fashion and crafts", "(C) International banking", "(D) Importation services"],
+    answer: 1
+  },
+  {
+    question: "Q95: The relationship between trade and self-reliance is that trade:",
+    options: ["(A) Makes people dependent on others", "(B) Encourages waste", "(C) Provides a platform for people to exchange goods and services for livelihood", "(D) Weakens local production"],
+    answer: 2
+  },
+  {
+    question: "Q96: The use of local materials and human resources for development defines:",
+    options: ["(A) Importation", "(B) Indigenous production", "(C) Globalization", "(D) Digital marketing"],
+    answer: 1
+  },
+  {
+    question: "Q97: One way to promote indigenous trade is to:",
+    options: ["(A) Rely only on imported goods", "(B) Devalue the local currency", "(C) Support local producers and craftspeople", "(D) Ban local markets"],
+    answer: 2
+  },
+  {
+    question: "Q98: Which of the following discourages self-reliance in a society?",
+    options: ["(A) Entrepreneurship education", "(B) High dependence on imported goods", "(C) Vocational training", "(D) Local content development"],
+    answer: 1
+  },
+  {
+    question: "Q99: Vocational and technical education promotes self-reliance by:",
+    options: ["(A) Making students dependent on others", "(B) Providing practical skills for employment or business", "(C) Focusing only on theory", "(D) Discouraging creativity"],
+    answer: 1
+  },
+  {
+    question: "Q100: 'Igba Boi' also called 'Imu Ahia' is a unique indigenous entrepreneurship model of ___ tribe in Nigeria",
+    options: ["(A) Igbo", "(B) Abakaliki Imu Ahia", "(C) Anambra Igba Boi", "(D) Ohafia Imu Ahia"],
+    answer: 0
+  },
+  {
+    question: "Q101: What does social justice primarily aim to promote in a society?",
+    options: ["(A) Personal wealth", "(B) Equality and fairness", "(C) Political rivalry", "(D) Cultural dominance"],
+    answer: 1
+  },
+  {
+    question: "Q102: Which of the following best describes social justice?",
+    options: ["(A) The enforcement of religious law", "(B) Equal distribution of wealth and opportunities", "(C) Political manipulation of resources", "(D) Suppression of minority voices"],
+    answer: 1
+  },
+  {
+    question: "Q103: One major objective of national development is:",
+    options: ["(A) Economic monopoly", "(B) Social discrimination", "(C) Improved standard of living", "(D) Tribal favoritism"],
+    answer: 2
+  },
+  {
+    question: "Q104: Social justice contributes to national development by:",
+    options: ["(A) Dividing society by class", "(B) Encouraging inequality", "(C) Promoting unity and stability", "(D) Limiting civil rights"],
+    answer: 2
+  },
+  {
+    question: "Q105: Which institution is responsible for ensuring social justice in Nigeria?",
+    options: ["(A) Political parties", "(B) The judiciary", "(C) The press", "(D) Multinational companies"],
+    answer: 1
+  },
+  {
+    question: "Q106: Which of the following is not a principle of social justice?",
+    options: ["(A) Equity", "(B) Human rights", "(C) Discrimination", "(D) Participation"],
+    answer: 2
+  },
+  {
+    question: "Q107: A key indicator of national development is:",
+    options: ["(A) Increased population", "(B) High illiteracy rate", "(C) Technological advancement", "(D) Political unrest"],
+    answer: 2
+  },
+  {
+    question: "Q108: Which sector plays the most critical role in achieving national development?",
+    options: ["(A) The entertainment sector", "(B) The informal sector", "(C) The education sector", "(D) The criminal sector"],
+    answer: 2
+  },
+  {
+    question: "Q109: Social justice ensures that every individual:",
+    options: ["(A) Gets rich", "(B) Is treated fairly regardless of background", "(C) Rules the nation", "(D) Gains immunity from the law"],
+    answer: 1
+  },
+  {
+    question: "Q110: Which of these promotes national development through fairness in resource allocation?",
+    options: ["(A) Nepotism", "(B) Meritocracy", "(C) Ethnocentrism", "(D) Favoritism"],
+    answer: 1
+  },
+  {
+    question: "Q111: What is the best definition of law?",
+    options: ["(A) Rules made by individuals", "(B) The customs of a community", "(C) A set of rules enforceable by courts", "(D) Religious beliefs of a people"],
+    answer: 2
+  },
+  {
+    question: "Q112: Which of the following is a characteristic of law?",
+    options: ["(A) Optional compliance", "(B) Arbitrary judgment", "(C) Enforceability", "(D) Religious origin"],
+    answer: 2
+  },
+  {
+    question: "Q113: Public law governs the relationship between:",
+    options: ["(A) Private individuals", "(B) Citizens and their families", "(C) Individuals and the state", "(D) Political parties"],
+    answer: 2
+  },
+  {
+    question: "Q114: An example of criminal law is:",
+    options: ["(A) Divorce proceedings", "(B) Will and inheritance", "(C) Theft and assault", "(D) Property dispute"],
+    answer: 2
+  },
+  {
+    question: "Q115: Civil law deals with:",
+    options: ["(A) Military operations", "(B) Crimes and punishment", "(C) Disputes between individuals", "(D) Government elections"],
+    answer: 2
+  },
+  {
+    question: "Q116: The law that deals with the organization of government and its functions is:",
+    options: ["(A) Customary law", "(B) Constitutional law", "(C) Tort law", "(D) Criminal law"],
+    answer: 1
+  },
+  {
+    question: "Q117: Customary law is derived from:",
+    options: ["(A) The constitution", "(B) The president", "(C) Local traditions and customs", "(D) International treaties"],
+    answer: 2
+  },
+  {
+    question: "Q118: Which of the following is a source of Nigerian law?",
+    options: ["(A) The media", "(B) Public opinion", "(C) Judicial precedent", "(D) Religious belief alone"],
+    answer: 2
+  },
+  {
+    question: "Q119: Law can be classified into how many broad categories?",
+    options: ["(A) One", "(B) Two", "(C) Three", "(D) Five"],
+    answer: 1
+  },
+  {
+    question: "Q120: The primary aim of law in any society is to:",
+    options: ["(A) Promote dictatorship", "(B) Maintain order and justice", "(C) Encourage disobedience", "(D) Empower criminals"],
+    answer: 1
+  },
+  {
+    question: "Q121: Which arm of government is responsible for interpreting the law?",
+    options: ["(A) Executive", "(B) Legislature", "(C) Judiciary", "(D) Police"],
+    answer: 2
+  },
+  {
+    question: "Q122: The fundamental human rights of citizens are enshrined in the:",
+    options: ["(A) Criminal Code", "(B) Constitution", "(C) National Assembly Rules", "(D) Penal Code"],
+    answer: 1
+  }
+  ];
+  //Jokes list for interlude
+const jokes = [
+  "Why don’t skeletons fight each other? Because they don’t have the guts! 😂",
+  "What do you call fake spaghetti? An *impasta* 😂!",
+  "Why can’t your nose be 12 inches long? Because then it would be a foot! 😂",
+  "Why did the bicycle fall? Because it was two-tired 😂",
+  " Why did the computer go to the doctor? Because it caught a *virus*! 😂",
+  "Why don’t scientists trust atoms? Because they make up everything! 😂"
+];
+
+// Show interlude screen
+function showInterlude(nextStep) {
+  quizEl.innerHTML = `
+    <div style="text-align:center;">
+      <h2>😎 Interlude Break!</h2>
+      <p>${jokes[Math.floor(Math.random() * jokes.length)]}</p>
+      <p>Relax for <span id="countdown">15</span> seconds...</p>
+      <button id="skip-btn" style="margin-top:10px; padding:8px 16px; font-size:14px; cursor:pointer;">Skip Break ⏩</button>
+    </div>
+  `;
+
+  let timeLeft = 15;
+  const countdownEl = document.getElementById("countdown");
+  const skipBtn = document.getElementById("skip-btn");
+
+  const timer = setInterval(() => {
+    timeLeft--;
+    countdownEl.innerText = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      nextStep(); // resume quiz
+    }
+  }, 1000);
+
+  skipBtn.onclick = () => {
+    clearInterval(timer);  // stop countdown
+    nextStep();            // resume quiz immediately
+  };
+
+  prevBtn.style.display = "none";
+  nextBtn.style.display = "none";
+  submitBtn.style.display = "none";
+}
+
+    let currentQuestion = 0;
+    let userAnswers = Array(questions.length).fill(null);
+    let player = "";
+
+    const introEl = document.getElementById("intro");
+    const quizContainer = document.getElementById("quiz-container");
+    const quizEl = document.getElementById("quiz");
+    const nextBtn = document.getElementById("next-btn");
+    const prevBtn = document.getElementById("prev-btn");
+    const submitBtn = document.getElementById("submit-btn");
+    const resultEl = document.getElementById("result");
+    const startBtn = document.getElementById("start-btn");
+
+    startBtn.onclick = () => {
+      const nameInput = document.getElementById("playerName").value.trim();
+      if (nameInput === "") {
+        alert("Please enter your name before starting.");
+        return;
+      }
+      player = nameInput;
+      introEl.style.display = "none";
+      quizContainer.style.display = "block";
+      loadQuestion();
+    };
+
+    function updateProgress() {
+      const percent = Math.round(((currentQuestion + 1) / questions.length) * 100);
+      const progressBar = document.getElementById("progress-bar");
+      progressBar.style.width = percent + "%";
+      progressBar.innerText = percent + "%";
+
+      // Smooth color: red (0) -> yellow (60) -> green (120)
+      const hue = (percent * 120) / 100;
+      progressBar.style.backgroundColor = `hsl(${hue}, 100%, 45%)`;
+    }
+
+    function loadQuestion() {
+      const q = questions[currentQuestion];
+      quizEl.innerHTML = `
+        <div class="question">${q.question}</div>
+        <div class="options" id="options"></div>
+      `;
+      const optionsEl = document.getElementById("options");
+
+      q.options.forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.innerText = opt;
+
+        if (userAnswers[currentQuestion] === i) {
+          btn.classList.add("selected");
+        }
+
+        btn.onclick = () => {
+          document.querySelectorAll(".option").forEach(el => el.classList.remove("selected"));
+          btn.classList.add("selected");
+          userAnswers[currentQuestion] = i;
+        };
+
+        optionsEl.appendChild(btn);
+      });
+
+      prevBtn.style.display = currentQuestion === 0 ? "none" : "inline-block";
+      nextBtn.style.display = currentQuestion === questions.length - 1 ? "none" : "inline-block";
+      submitBtn.style.display = currentQuestion === questions.length - 1 ? "inline-block" : "none";
+
+      updateProgress();
+    }
+
+    nextBtn.onclick = () => {
+  if (currentQuestion < questions.length - 1) {
+    currentQuestion++;
+
+    // Show interlude after question 50
+    if (currentQuestion === 50) {
+      showInterlude(() => loadQuestion());
+    } else {
+      loadQuestion();
+    }
+  }
+    };
+    prevBtn.onclick = () => {
+      if (currentQuestion > 0) {
+        currentQuestion--;
+        loadQuestion();
+      }
+    };
+
+    submitBtn.onclick = () => {
+      let score = 0;
+      let reviewHTML = "<div class='review'><h3>Review of Wrong Answers:</h3>";
+
+      userAnswers.forEach((ans, i) => {
+        if (ans === questions[i].answer) {
+          score++;
+        } else {
+          reviewHTML += `
+            <p><strong>Q${i+1}:</strong> ${questions[i].question}<br>
+            ❌ Your answer: ${ans !== null ? questions[i].options[ans] : "No answer"}<br>
+            ✅ Correct answer: ${questions[i].options[questions[i].answer]}</p>
+          `;
+        }
+      });
+
+      reviewHTML += "</div>";
+
+      const percentage = Math.round((score / questions.length) * 100);
+
+      // Performance feedback
+      let feedback = "";
+      if (score === questions.length) {
+        feedback = `🌟 Excellent, ${player}! God forbid!!! You too sabi book... You're the G.O.A.T!!! 💪🔥`;
+      } else if (score >= questions.length * 0.7) {
+        feedback = `That's great oh, ${player}! You see that word "Brilliant", tear am comot from dictionary cuz na you get am.`;
+      } else if (score >= questions.length * 0.4) {
+        feedback = `👍 Not bad, ${player}. Keep pushing!`;
+      } else {
+        feedback = `💡 Don't give up, ${player}. Study harder and try again!`;
+      }
+
+      resultEl.innerHTML = `
+        <h2>${player}, your Score: ${score} / ${questions.length} (${percentage}%)</h2>
+        <p>${feedback}</p>
+        ${reviewHTML}
+        <button id="restart-btn">Restart Quiz</button>
+      `;
+
+      quizEl.style.display = "none";
+      nextBtn.style.display = "none";
+      prevBtn.style.display = "none";
+      submitBtn.style.display = "none";
+
+      const progressBar = document.getElementById("progress-bar");
+      progressBar.style.width = "100%";
+      progressBar.innerText = "100%";
+      progressBar.style.backgroundColor = `hsl(${(percentage * 120) / 100}, 100%, 45%)`;
+
+      document.getElementById("restart-btn").onclick = () => restartQuiz();
+    };
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      userAnswers = Array(questions.length).fill(null);
+      quizEl.style.display = "block";
+      resultEl.innerHTML = "";
+      loadQuestion();
+      nextBtn.style.display = "inline-block";
+      prevBtn.style.display = "none";
+      submitBtn.style.display = "none";
+
+      const progressBar = document.getElementById("progress-bar");
+      progressBar.style.width = "0%";
+      progressBar.innerText = "0%";
+      progressBar.style.backgroundColor = "red";
+    }
+  </script>
+</body>
+</html>
